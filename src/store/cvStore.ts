@@ -48,6 +48,8 @@ interface CVStore {
     duplicateTemplate: (id: string) => void;
     importTemplate: (json: string) => void;
     exportTemplate: (id: string) => string;
+    importAllTemplates: (json: string) => void;
+    exportAllTemplates: () => string;
 
     // Actions - History
     pushHistory: (description: string) => void;
@@ -228,6 +230,24 @@ export const useCVStore = create<CVStore>()(
                 const template = get().templates.find((t) => t.id === id);
                 if (!template) throw new Error('Template not found');
                 return JSON.stringify(template, null, 2);
+            },
+
+            importAllTemplates: (json) => {
+                try {
+                    const parsed = JSON.parse(json);
+                    if (!Array.isArray(parsed)) throw new Error('Expected array of templates');
+                    const imported = parsed.map((t) => ({ ...t, id: `template-${uuid()}` }));
+                    set((state) => ({
+                        templates: [...state.templates, ...imported],
+                    }));
+                } catch {
+                    throw new Error('Invalid templates JSON array');
+                }
+            },
+
+            exportAllTemplates: () => {
+                const templates = get().templates;
+                return JSON.stringify(templates, null, 2);
             },
 
             // History Actions

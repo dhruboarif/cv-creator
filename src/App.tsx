@@ -284,8 +284,8 @@ const App: React.FC = () => {
         </div>
 
         {/* Right Column: High-fidelity print-preview simulator */}
-        <div className="w-1/2 bg-slate-950/60 overflow-y-auto p-8 flex flex-col items-center gap-6">
-          <div className="w-full max-w-[794px] glass-card p-4 flex flex-col xl:flex-row items-center justify-between gap-4 border border-white/10 rounded-xl bg-slate-900/80 backdrop-blur-xl sticky top-4 z-50 shadow-2xl">
+        <div className="w-1/2 bg-slate-950/60 overflow-y-auto px-8 pb-8 pt-0 flex flex-col items-center gap-6">
+          <div className="w-full max-w-[794px] glass-card p-4 flex flex-col xl:flex-row items-center justify-between gap-4 border-x border-b border-white/10 rounded-b-xl bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 shadow-2xl">
             <div className="flex flex-col gap-1 items-start w-full xl:w-auto">
               <span className="text-xs text-accent font-bold uppercase tracking-wider">Output Preview Settings</span>
               <span className="text-[10px] text-slate-400">Live adjustments and quick export</span>

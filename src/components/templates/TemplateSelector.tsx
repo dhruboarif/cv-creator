@@ -4,8 +4,9 @@ import CVRenderer from '../../renderer/CVRenderer';
 import { Copy, Trash2, Download, Upload, Edit2, Check, X } from 'lucide-react';
 
 const TemplateSelector: React.FC = () => {
-    const { templates, currentTemplateId, setCurrentTemplate, duplicateTemplate, deleteTemplate, importTemplate, exportTemplate, updateTemplate, cvData } = useCVStore();
+    const { templates, currentTemplateId, setCurrentTemplate, duplicateTemplate, deleteTemplate, importTemplate, exportTemplate, importAllTemplates, exportAllTemplates, updateTemplate, cvData } = useCVStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const fileInputAllRef = useRef<HTMLInputElement>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editName, setEditName] = useState('');
 
@@ -23,6 +24,21 @@ const TemplateSelector: React.FC = () => {
         reader.readAsText(file);
     };
 
+    const handleImportAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                importAllTemplates(reader.result as string);
+                alert('Templates imported successfully');
+            } catch {
+                alert('Invalid templates file');
+            }
+        };
+        reader.readAsText(file);
+    };
+
     const handleExport = (id: string) => {
         const json = exportTemplate(id);
         const blob = new Blob([json], { type: 'application/json' });
@@ -30,6 +46,17 @@ const TemplateSelector: React.FC = () => {
         const a = document.createElement('a');
         a.href = url;
         a.download = `template-${id}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const handleExportAll = () => {
+        const json = exportAllTemplates();
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `all-templates.json`;
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -51,10 +78,19 @@ const TemplateSelector: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold gradient-text">CV Templates</h2>
                 <div className="flex gap-2">
-                    <button className="btn-secondary" onClick={() => fileInputRef.current?.click()}>
+                    <button className="btn-secondary" onClick={() => fileInputRef.current?.click()} title="Import Single">
                         <Upload size={14} /> Import
                     </button>
                     <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
+                    
+                    <button className="btn-secondary" onClick={() => fileInputAllRef.current?.click()} title="Import All">
+                        <Upload size={14} /> Import All
+                    </button>
+                    <input ref={fileInputAllRef} type="file" accept=".json" onChange={handleImportAll} className="hidden" />
+
+                    <button className="btn-primary flex items-center gap-1.5" onClick={handleExportAll}>
+                        <Download size={14} /> Export All
+                    </button>
                 </div>
             </div>
 
