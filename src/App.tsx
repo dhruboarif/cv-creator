@@ -9,9 +9,11 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import ExportPanel from './components/export/ExportPanel';
 import DataDashboard from './components/forms/DataDashboard';
+import SavedProfiles from './components/saved/SavedProfiles';
+import AIDocumentScanner from './components/ai/AIDocumentScanner';
 import {
   FileText, Palette, Settings, Image as ImageIcon, Download,
-  RotateCcw, RotateCw, Database, Sparkles, CheckCircle, RefreshCcw
+  RotateCcw, RotateCw, Database, Sparkles, CheckCircle, RefreshCcw, Bookmark, ScanLine
 } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -168,34 +170,52 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Dynamic Modern Glass Header */}
-      <header className="h-14 border-b border-white/5 bg-slate-950/80 backdrop-blur-md flex items-center justify-between px-6 z-50 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-accent/10 rounded-lg text-accent">
+      <header className="h-16 border-b border-white/10 bg-slate-950/90 backdrop-blur-md flex items-center justify-between px-5 z-50 flex-shrink-0">
+        <div
+          className="flex items-center gap-2.5 cursor-pointer group shrink-0"
+          onClick={() => {
+            setActiveTab('form');
+            useCVStore.getState().setActiveFormSection('personal');
+          }}
+          title="Go to Homepage / Personal Info"
+        >
+          <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 group-hover:bg-indigo-500/20 transition-colors">
             <Sparkles size={18} />
           </div>
-          <div>
-            <h1 className="text-md font-bold gradient-text tracking-wide">CV Creator Pro</h1>
-            <p className="text-[10px] text-slate-500 font-medium">Desktop Desktop-First Production Suite</p>
+          <div className="leading-tight">
+            <h1 className="text-sm font-bold text-slate-100 whitespace-nowrap tracking-tight">
+              CV Creator Pro <span className="text-indigo-400 font-medium text-xs">by Dhrubo Computers</span>
+            </h1>
+            <p className="text-[10px] text-slate-400 font-medium">Desktop Production Suite</p>
           </div>
         </div>
 
         {/* Action Controls & Navigation */}
-        <div className="flex gap-2">
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1">
           {[
             { id: 'templates', label: 'Template Selector', icon: Palette },
             { id: 'form', label: 'CV Content Form', icon: FileText },
+            { id: 'ai-scan', label: 'AI Auto Fill', icon: ScanLine, special: true },
+            { id: 'saved', label: 'Saved CVs', icon: Bookmark },
             { id: 'editor', label: 'Template Editor', icon: Settings },
             { id: 'photo', label: 'Photo & Shape', icon: ImageIcon },
             { id: 'data', label: 'Spreadsheets & CSV', icon: Database },
             { id: 'export', label: 'Export CV', icon: Download },
-          ].map((tab) => (
+          ].map((tab: any) => (
             <button
               key={tab.id}
-              className={`tab-item ${activeTab === tab.id ? 'active' : ''}`}
+              className={`tab-item px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 whitespace-nowrap transition ${
+                activeTab === tab.id
+                  ? 'bg-indigo-600 text-white shadow'
+                  : tab.special
+                  ? 'bg-gradient-to-r from-violet-600/30 to-indigo-600/30 text-violet-300 hover:from-violet-600/50 hover:to-indigo-600/50 border border-violet-500/30'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              }`}
               onClick={() => setActiveTab(tab.id as any)}
             >
-              <tab.icon size={13} />
+              <tab.icon size={14} />
               {tab.label}
+              {tab.special && <span className="text-[9px] bg-violet-500 text-white px-1 py-px rounded font-bold">AI</span>}
             </button>
           ))}
         </div>
@@ -209,7 +229,10 @@ const App: React.FC = () => {
               onClick={() => {
                 setPagesCount(1);
                 setTimeout(() => {
-                  document.getElementById('cv-render-page-1')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  const container = document.getElementById('preview-container');
+                  if (container) {
+                    container.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
                 }, 50);
               }}
             >
@@ -220,13 +243,30 @@ const App: React.FC = () => {
               onClick={() => {
                 setPagesCount(2);
                 setTimeout(() => {
-                  document.getElementById('cv-render-page-2')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  const container = document.getElementById('preview-container');
+                  const page2 = document.getElementById('cv-render-page-2');
+                  if (container && page2) {
+                    container.scrollTo({ top: page2.offsetTop - 120, behavior: 'smooth' });
+                  }
                 }, 50);
               }}
             >
               Page 2
             </button>
           </div>
+          {/* Quick Save CV in header */}
+          <button
+            className="h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] uppercase font-bold flex items-center gap-1.5 shadow-md transition"
+            onClick={() => {
+              const name = useCVStore.getState().cvData.personal.name || 'My CV Profile';
+              useCVStore.getState().saveProfile();
+              alert(`"${name}" নাম দিয়ে CV টি সফলভাবে সেভ করা হয়েছে!`);
+            }}
+            title="Personal Name দিয়ে এক ক্লিকে সেভ করুন"
+          >
+            <Bookmark size={12} />
+            Save CV
+          </button>
           {/* Quick PDF Export in header */}
           <button
             className="btn-primary h-8 px-3 rounded-lg text-[10px] uppercase font-bold flex items-center gap-1.5 mr-2"
@@ -273,9 +313,15 @@ const App: React.FC = () => {
       <main className="flex-1 flex overflow-hidden">
         {/* Left Column: Form controllers or Editor panels */}
         <div className="w-1/2 flex flex-col border-r border-white/5 bg-slate-900/60 overflow-hidden">
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden overflow-y-auto">
             {activeTab === 'templates' && <TemplateSelector />}
             {activeTab === 'form' && <CVForm />}
+            {activeTab === 'ai-scan' && (
+              <div className="p-4">
+                <AIDocumentScanner onClose={() => setActiveTab('form')} />
+              </div>
+            )}
+            {activeTab === 'saved' && <SavedProfiles />}
             {activeTab === 'editor' && <TemplateVisualEditor />}
             {activeTab === 'photo' && <PhotoEditor />}
             {activeTab === 'data' && <DataDashboard />}
@@ -284,7 +330,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Right Column: High-fidelity print-preview simulator */}
-        <div className="w-1/2 bg-slate-950/60 overflow-y-auto px-8 pb-8 pt-0 flex flex-col items-center gap-6">
+        <div id="preview-container" className="w-1/2 bg-slate-950/60 overflow-y-auto px-8 pb-8 pt-0 flex flex-col items-center gap-6">
           <div className="w-full max-w-[794px] glass-card p-4 flex flex-col xl:flex-row items-center justify-between gap-4 border-x border-b border-white/10 rounded-b-xl bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 shadow-2xl">
             <div className="flex flex-col gap-1 items-start w-full xl:w-auto">
               <span className="text-xs text-accent font-bold uppercase tracking-wider">Output Preview Settings</span>

@@ -99,6 +99,8 @@ export interface Training {
     organization: string;
     duration: string;
     date: string;
+    institution?: string;
+    year?: string;
 }
 
 export interface Publication {
@@ -144,6 +146,7 @@ export interface CVData {
     volunteering: Volunteering[];
     publications: Publication[];
     hobbies: string[];
+    customSections: CustomSection[];
     declaration: string;
     sectionVisibility?: Record<string, boolean>;
     photo: string | null; // base64
@@ -191,7 +194,9 @@ export interface TemplateConfig {
     id: string;
     name: string;
     description: string;
-    layoutType?: 'standard' | 'top-header' | 'top-header-alt' | 'overlap';
+    baseDesignId?: string;
+    variant?: 'Fresher' | 'Split Education' | 'Experienced';
+    layoutType?: 'standard' | 'top-header' | 'top-header-alt' | 'overlap' | 'classic-cv' | 'modern-blue';
     educationPage?: 1 | 2 | 'split';
     thumbnail: string;
     pageSize: { width: number; height: number };
@@ -221,7 +226,7 @@ export interface TemplateConfig {
     elements: {
         name: TemplateElementConfig;
         profession: TemplateElementConfig;
-        photo: TemplateElementConfig & { shape: 'circle' | 'rectangle' | 'rounded' };
+        photo: TemplateElementConfig & { shape: 'circle' | 'rectangle' | 'rounded' | 'square' };
         contact: TemplateSectionConfig;
         careerObjective: TemplateSectionConfig;
         experience: TemplateSectionConfig;
@@ -271,3 +276,12 @@ export interface AppState {
     activeFormSection: string;
     zoom: number;
 }
+
+export interface SavedProfile {
+    id: string;
+    name: string;
+    updatedAt: string;
+    currentTemplateId: string;
+    cvData: CVData;
+}
+

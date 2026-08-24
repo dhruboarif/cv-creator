@@ -3,14 +3,14 @@ import { useCVStore } from '../../store/cvStore';
 import type { CVData } from '../../types';
 import {
     User, Briefcase, GraduationCap, Code, Languages as LanguagesIcon, FolderOpen,
-    Award, BookOpen, FileText, Heart, Shield, Users, Plus, Trash2, Target, Upload, ClipboardPaste, HandHeart
+    Award, BookOpen, FileText, Heart, Shield, Users, Plus, Trash2, Target, Upload, ClipboardPaste, HandHeart, Bookmark
 } from 'lucide-react';
 import { v4 as uuid } from 'uuid';
 
 const sections = [
     { id: 'personal', label: 'Personal Info', icon: User },
-    { id: 'objective', label: 'Career Objective', icon: Target },
-    { id: 'experience', label: 'Experience', icon: Briefcase },
+    { id: 'objective', label: 'Career Objective', icon: Target, toggleable: true, defaultOff: false },
+    { id: 'experience', label: 'Experience', icon: Briefcase, toggleable: true, defaultOff: false },
     { id: 'education', label: 'Education', icon: GraduationCap },
     { id: 'computerSkills', label: 'Computer Skills', icon: Code },
     { id: 'technicalSkills', label: 'Key Skills', icon: Shield },
@@ -84,7 +84,14 @@ const CVForm: React.FC = () => {
     return (
         <div className="flex h-full">
             {/* Section Navigation */}
-            <div className="w-52 flex-shrink-0 border-r border-white/5 p-2 overflow-y-auto">
+            <div className="w-52 flex-shrink-0 border-r border-white/10 p-2.5 overflow-y-auto space-y-1 bg-slate-950/40">
+                <button
+                    onClick={() => useCVStore.getState().setActiveTab('saved')}
+                    className="w-full bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-200 font-semibold text-xs py-2 px-3 rounded-lg border border-indigo-500/30 flex items-center justify-center gap-2 mb-3 transition shadow-sm"
+                >
+                    <Bookmark size={14} className="text-indigo-400 shrink-0" />
+                    <span>Saved CV Profiles</span>
+                </button>
                 {sections.map((section) => {
                     const isVisible = section.toggleable
                         ? (cvData.sectionVisibility ? cvData.sectionVisibility[section.id] ?? !section.defaultOff : !section.defaultOff)
@@ -230,28 +237,45 @@ function PersonalInfoForm({ data, onUpdate }: { data: CVData; onUpdate: (u: (d: 
                 </div>
                 <div className="flex-1">
                     <h4 className="text-sm font-medium text-slate-300 mb-2">Profile Photo</h4>
-                    <div className="flex gap-2">
-                        <label className="btn-primary py-1.5 px-3 text-xs cursor-pointer">
-                            Upload Basic Photo
-                            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
-                        </label>
-                        <button
-                            className="btn-secondary py-1.5 px-3 text-xs"
-                            onClick={() => setActiveTab('photo')}
-                        >
-                            Advanced Editor ✨
-                        </button>
-                        {data.photo && (
+                        <div className="flex gap-2 items-center flex-wrap">
+                            <label className="btn-primary py-1.5 px-3 text-xs cursor-pointer">
+                                Upload Basic Photo
+                                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                            </label>
                             <button
-                                className="btn-danger py-1.5 px-3 text-xs ml-auto"
-                                onClick={() => setPhoto(null)}
+                                className="btn-secondary py-1.5 px-3 text-xs"
+                                onClick={() => setActiveTab('photo')}
                             >
-                                Remove
+                                Advanced Editor ✨
                             </button>
-                        )}
+                            {/* Photo Show/Hide Toggle */}
+                            <button
+                                type="button"
+                                className={`py-1.5 px-3 text-xs font-semibold rounded-lg border transition ${
+                                    (data.sectionVisibility?.photo ?? true)
+                                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                        : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                                }`}
+                                onClick={() => {
+                                    onUpdate((d) => {
+                                        if (!d.sectionVisibility) d.sectionVisibility = {};
+                                        d.sectionVisibility.photo = !(d.sectionVisibility.photo ?? true);
+                                    });
+                                }}
+                            >
+                                Photo: {(data.sectionVisibility?.photo ?? true) ? 'ON' : 'OFF'}
+                            </button>
+                            {data.photo && (
+                                <button
+                                    className="btn-danger py-1.5 px-3 text-xs ml-auto"
+                                    onClick={() => setPhoto(null)}
+                                >
+                                    Remove
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
 
             <div className="grid grid-cols-2 gap-4">
                 {fields.map((field) => (
@@ -286,7 +310,14 @@ function PersonalInfoForm({ data, onUpdate }: { data: CVData; onUpdate: (u: (d: 
 function ObjectiveForm({ data, onUpdate, onSave }: { data: any; onUpdate: (u: (d: any) => void) => void; onSave: () => void }) {
     return (
         <div>
-            <h3 className="text-lg font-semibold mb-4 gradient-text">Career Objective / Summary</h3>
+            <SectionToggleHeader
+                sectionKey="objective"
+                title="Career Objective / Summary"
+                defaultOff={false}
+                data={data}
+                onUpdate={onUpdate}
+                onSave={onSave}
+            />
             <textarea
                 className="textarea-field"
                 value={data.careerObjective}
@@ -324,8 +355,16 @@ function ExperienceForm({ data, onUpdate, onSave }: { data: any; onUpdate: (u: (
 
     return (
         <div>
+            <SectionToggleHeader
+                sectionKey="experience"
+                title="Work Experience Section"
+                defaultOff={false}
+                data={data}
+                onUpdate={onUpdate}
+                onSave={onSave}
+            />
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold gradient-text">Work Experience</h3>
+                <h3 className="text-lg font-semibold gradient-text">Work Experience Details</h3>
                 <button className="btn-primary" onClick={addExperience}><Plus size={14} /> Add</button>
             </div>
             {data.experience.map((exp: any, idx: number) => (
@@ -376,6 +415,15 @@ function ExperienceForm({ data, onUpdate, onSave }: { data: any; onUpdate: (u: (
 // Education Form
 // ============================================================
 function EducationForm({ data, onUpdate, onSave }: { data: any; onUpdate: (u: (d: any) => void) => void; onSave: () => void }) {
+    const isJustMain = data.sectionVisibility?.educationJustMain ?? false;
+    const toggleJustMain = () => {
+        onUpdate((d: any) => {
+            if (!d.sectionVisibility) d.sectionVisibility = {};
+            d.sectionVisibility.educationJustMain = !isJustMain;
+        });
+        onSave();
+    };
+
     const addEducation = () => {
         onUpdate((d: any) => {
             d.education.push({ id: uuid(), degree: '', institution: '', board: '', university: '', group: '', session: '', passingYear: '', result: '' });
@@ -385,8 +433,30 @@ function EducationForm({ data, onUpdate, onSave }: { data: any; onUpdate: (u: (d
 
     return (
         <div>
+            <div className="flex items-center justify-between p-3.5 glass-card bg-slate-900/80 mb-5 border border-white/10 rounded-xl shadow-lg">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-semibold text-slate-100">Just Main Info Mode</h4>
+                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full tracking-wider ${isJustMain ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-slate-700/40 text-slate-400 border border-slate-600/30'}`}>
+                            {isJustMain ? 'JUST MAIN (ON)' : 'FULL DETAILS (OFF)'}
+                        </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">
+                        {isJustMain ? 'Shows only Degree, Group, Year & Result on CV. Hides Institution, University, Board & Session.' : 'Shows all education details including Institution, University, Board & Session on CV.'}
+                    </p>
+                </div>
+                <button
+                    onClick={toggleJustMain}
+                    type="button"
+                    className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-200 cursor-pointer ${isJustMain ? 'bg-amber-500 justify-end' : 'bg-slate-700 justify-start'}`}
+                    title="Toggle Just Main Mode"
+                >
+                    <span className="w-4 h-4 rounded-full bg-white shadow-md transform transition-transform" />
+                </button>
+            </div>
+
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold gradient-text">Education</h3>
+                <h3 className="text-lg font-semibold gradient-text">Education Qualifications</h3>
                 <button className="btn-primary" onClick={addEducation}><Plus size={14} /> Add</button>
             </div>
             {data.education.map((edu: any, idx: number) => (

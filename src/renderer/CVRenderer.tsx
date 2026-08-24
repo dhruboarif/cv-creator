@@ -114,6 +114,330 @@ const CVRenderer: React.FC<CVRendererProps> = ({ data, template, scale = 1, page
         ),
     };
 
+    if (template.layoutType === 'modern-blue') {
+        return (
+            <div
+                className="cv-page"
+                id={id}
+                style={{
+                    width: pageSize.width,
+                    height: pageSize.height,
+                    boxSizing: 'border-box',
+                    transform: `scale(${scale})`,
+                    transformOrigin: 'top center',
+                    fontFamily: `'${fonts.body}', sans-serif`,
+                    color: textColor,
+                    fontSize: 10 + fontSizeModifier,
+                    lineHeight: 1.5,
+                    display: 'flex',
+                    flexDirection: 'row',
+                    backgroundColor: mainBg,
+                    overflow: 'hidden',
+                }}
+            >
+                {/* ── LEFT SIDEBAR ── */}
+                <div style={{
+                    width: sidebarWidth + 20, // slightly wider for modern blue
+                    backgroundColor: sidebarBg,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flexShrink: 0,
+                    height: '100%',
+                    boxSizing: 'border-box',
+                    padding: `${25 + topSpacing}px 25px ${25 + bottomSpacing}px 25px`,
+                }}>
+                    {/* Name */}
+                    <div style={{
+                        fontSize: 26 + fontSizeModifier,
+                        fontWeight: 800,
+                        color: template.colors.primary,
+                        fontFamily: `'${fonts.heading}', sans-serif`,
+                        textAlign: 'center',
+                        marginBottom: 20,
+                        lineHeight: 1.2
+                    }}>
+                        {data.personal.name || 'YOUR NAME'}
+                    </div>
+
+                    {/* Photo */}
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 30 }}>
+                        {data.photo ? (
+                            <div
+                                style={{
+                                    width: 140,
+                                    height: 160,
+                                    borderRadius: 8,
+                                    border: '4px solid #FFFFFF',
+                                    overflow: 'hidden',
+                                    position: 'relative',
+                                    backgroundColor: '#0F172A',
+                                    cursor: isDragging ? 'grabbing' : 'grab',
+                                    userSelect: 'none',
+                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+                                }}
+                                onMouseDown={handleMouseDown}
+                                onMouseMove={handleMouseMove}
+                                onMouseUp={handleMouseUp}
+                                onMouseLeave={handleMouseUp}
+                                onTouchStart={handleTouchStart}
+                                onTouchMove={handleTouchMove}
+                                onTouchEnd={handleMouseUp}
+                                onWheel={handleWheel}
+                            >
+                                <img
+                                    src={data.photo}
+                                    alt="Profile"
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'contain',
+                                        transform: `translate(${position.x}px, ${position.y}px) rotate(${data.photoRotation || 0}deg) scale(${data.photoZoom || 1})`,
+                                        pointerEvents: 'none',
+                                        display: 'block',
+                                    }}
+                                    draggable={false}
+                                />
+                            </div>
+                        ) : (
+                            <div style={{
+                                width: 140,
+                                height: 160,
+                                borderRadius: 8,
+                                border: `4px dashed ${template.colors.primary}`,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: template.colors.primary,
+                                opacity: 0.8,
+                            }}>
+                                <User size={28} />
+                                <span style={{ fontSize: 10, marginTop: 4 }}>No Photo</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Contact */}
+                    {(data.personal.phone || data.personal.email || data.personal.address) && (
+                        <div style={{ marginBottom: 20 }}>
+                            <SectionTitle text="Contact" fonts={fonts} lineColor={template.colors.accent} color={template.colors.primary} />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, color: '#1E293B', fontWeight: 500 }}>
+                                {data.personal.address && (
+                                    <div>
+                                        <div style={{ fontWeight: 'bold', fontSize: 11 + fontSizeModifier }}>Present Address:</div>
+                                        <div style={{ lineHeight: 1.3 }}>{data.personal.address}</div>
+                                    </div>
+                                )}
+                                {data.personal.phone && (
+                                    <div>
+                                        <div style={{ fontWeight: 'bold', fontSize: 11 + fontSizeModifier }}>Phone:</div>
+                                        <div>{data.personal.phone}</div>
+                                    </div>
+                                )}
+                                {data.personal.email && (
+                                    <div>
+                                        <div style={{ fontWeight: 'bold', fontSize: 11 + fontSizeModifier }}>Email:</div>
+                                        <div style={{ textDecoration: 'underline' }}>{data.personal.email}</div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Languages */}
+                    {data.languages.length > 0 && (
+                        <div style={{ marginBottom: 20 }}>
+                            <SectionTitle text="Languages" fonts={fonts} lineColor={template.colors.accent} color={template.colors.primary} />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, color: '#1E293B' }}>
+                                Have good skills of reading, writing & speaking in:
+                                {data.languages.map((lang) => (
+                                    <div key={lang.id} style={{ fontWeight: 500 }}>
+                                        • {lang.name}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Computer Skills */}
+                    {data.computerSkills.length > 0 && (
+                        <div style={{ marginBottom: 20 }}>
+                            <SectionTitle text="Computer Skills" fonts={fonts} lineColor={template.colors.accent} color={template.colors.primary} />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, color: '#1E293B', fontWeight: 500 }}>
+                                {data.computerSkills.map((skill) => (
+                                    <div key={skill.id} style={{ display: 'flex', gap: 6 }}>
+                                        <span>•</span>
+                                        <span>{skill.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Signature */}
+                    <div style={{ marginTop: 'auto', paddingTop: 30 }}>
+                        <div style={{ width: '120px', height: '1px', backgroundColor: '#1E293B', marginBottom: 4 }} />
+                        <div style={{ color: '#1E293B', fontSize: 11 + fontSizeModifier }}>Signature</div>
+                        <div style={{ color: '#1E293B', fontSize: 11 + fontSizeModifier, marginTop: 2 }}>Date:</div>
+                    </div>
+                </div>
+
+                {/* ── RIGHT MAIN ── */}
+                <div style={{
+                    flex: 1,
+                    backgroundColor: mainBg,
+                    padding: `${25 + topSpacing}px 30px ${25 + bottomSpacing}px 30px`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 16,
+                    color: textColor,
+                    boxSizing: 'border-box',
+                }}>
+                    {/* Career Objective */}
+                    {data.careerObjective && (
+                        <div>
+                            <SectionTitle text="Career Objective" fonts={fonts} lineColor={template.colors.accent} color={template.colors.primary} />
+                            <div style={{ textAlign: 'justify', lineHeight: 1.6, color: '#1E293B' }}>
+                                {data.careerObjective}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Skill Highlights (Technical Skills) */}
+                    {data.technicalSkills.length > 0 && (
+                        <div>
+                            <SectionTitle text="Skill Highlights" fonts={fonts} lineColor={template.colors.accent} color={template.colors.primary} />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 16px', color: '#1E293B', fontWeight: 500 }}>
+                                {data.technicalSkills.map((skill) => (
+                                    <div key={skill.id} style={{ display: 'flex', gap: 6 }}>
+                                        <span>•</span>
+                                        <span>{skill.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Personal Information */}
+                    {(() => {
+                        const infoItems: [string, string][] = [
+                            ['Name', data.personal.name],
+                            ['Father\'s Name', data.personal.fatherName],
+                            ['Mother\'s Name', data.personal.motherName],
+                            ['Date of Birth', data.personal.dob],
+                            ['Permanent Address', data.personal.permanentAddress],
+                            ['Religion', data.personal.religion],
+                            ['Nationality', data.personal.nationality],
+                            ['Marital Status', data.personal.maritalStatus],
+                            ['Blood Group', data.personal.bloodGroup],
+                            ['NID Number', data.personal.nid],
+                        ].filter(([, val]) => val) as [string, string][];
+
+                        if (infoItems.length === 0) return null;
+
+                        return (
+                            <div>
+                                <SectionTitle text="Personal Information" fonts={fonts} lineColor={template.colors.accent} color={template.colors.primary} />
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, color: '#1E293B' }}>
+                                    {infoItems.map(([label, value], idx) => (
+                                        <div key={idx} style={{ display: 'flex' }}>
+                                            <div style={{ width: 140, flexShrink: 0 }}>{label}</div>
+                                            <div style={{ marginRight: 8 }}>:</div>
+                                            <div style={{ flex: 1 }}>{value}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })()}
+
+                    {/* Education */}
+                    {data.education.length > 0 && (
+                        <div>
+                            <SectionTitle text="Education" fonts={fonts} lineColor={template.colors.accent} color={template.colors.primary} />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, color: '#1E293B' }}>
+                                {data.education.map((edu) => (
+                                    <div key={edu.id}>
+                                        <div style={{ fontWeight: 'bold', fontSize: 11 + fontSizeModifier }}>
+                                            {edu.degree} {edu.passingYear ? `on ${edu.passingYear}` : ''}
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', paddingLeft: 16, marginTop: 2 }}>
+                                            {edu.result && (
+                                                <div style={{ display: 'flex' }}>
+                                                    <div style={{ width: 60, flexShrink: 0 }}>Result</div>
+                                                    <div style={{ marginRight: 8 }}>:</div>
+                                                    <div>{edu.result}</div>
+                                                </div>
+                                            )}
+                                            {edu.group && (
+                                                <div style={{ display: 'flex' }}>
+                                                    <div style={{ width: 60, flexShrink: 0 }}>Group</div>
+                                                    <div style={{ marginRight: 8 }}>:</div>
+                                                    <div>{edu.group}</div>
+                                                </div>
+                                            )}
+                                            {edu.board && (
+                                                <div style={{ display: 'flex' }}>
+                                                    <div style={{ width: 60, flexShrink: 0 }}>Board</div>
+                                                    <div style={{ marginRight: 8 }}>:</div>
+                                                    <div>{edu.board}</div>
+                                                </div>
+                                            )}
+                                            {edu.institution && (
+                                                <div style={{ display: 'flex' }}>
+                                                    <div style={{ width: 60, flexShrink: 0 }}>Institution</div>
+                                                    <div style={{ marginRight: 8 }}>:</div>
+                                                    <div>{edu.institution}</div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Experience */}
+                    {data.experience.length > 0 && (
+                        <div>
+                            <SectionTitle text="Experience" fonts={fonts} lineColor={template.colors.accent} color={template.colors.primary} />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, color: '#1E293B' }}>
+                                {data.experience.map((exp) => (
+                                    <div key={exp.id} style={{ display: 'flex', gap: 6 }}>
+                                        <div style={{ marginTop: 2 }}>•</div>
+                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                            {exp.company && (
+                                                <div style={{ display: 'flex' }}>
+                                                    <div style={{ width: 80, flexShrink: 0 }}>Company</div>
+                                                    <div style={{ marginRight: 8 }}>:</div>
+                                                    <div>{exp.company}</div>
+                                                </div>
+                                            )}
+                                            {exp.title && (
+                                                <div style={{ display: 'flex' }}>
+                                                    <div style={{ width: 80, flexShrink: 0 }}>Designation</div>
+                                                    <div style={{ marginRight: 8 }}>:</div>
+                                                    <div>{exp.title}</div>
+                                                </div>
+                                            )}
+                                            {exp.duration && (
+                                                <div style={{ display: 'flex' }}>
+                                                    <div style={{ width: 80, flexShrink: 0 }}>Duration</div>
+                                                    <div style={{ marginRight: 8 }}>:</div>
+                                                    <div>{exp.duration}</div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div
             className="cv-page"
@@ -645,7 +969,7 @@ const CVRenderer: React.FC<CVRendererProps> = ({ data, template, scale = 1, page
                             )}
 
                             {/* Trainings & Certifications */}
-                            {isSectionVisible('trainings', false) && data.trainings && data.trainings.length > 0 && (
+                            {isSectionVisible('trainings', true) && data.trainings && data.trainings.length > 0 && (
                                 <div>
                                     <SectionTitle text="TRAININGS" fonts={fonts} lineColor={sidebarTextColor === '#FFFFFF' ? 'rgba(255,255,255,0.3)' : lineColor} color={sidebarTextColor} />
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -754,7 +1078,7 @@ const CVRenderer: React.FC<CVRendererProps> = ({ data, template, scale = 1, page
                             )}
 
                             {/* Work Experience */}
-                            {data.experience.length > 0 && (
+                            {isSectionVisible('experience', true) && data.experience.length > 0 && (
                                 <div>
                                     <SectionTitle text="WORK EXPERIENCE" fonts={fonts} lineColor={lineColor} color={primaryColor} />
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
@@ -786,12 +1110,17 @@ const CVRenderer: React.FC<CVRendererProps> = ({ data, template, scale = 1, page
                                     <SectionTitle text="EDUCATIONAL QUALIFICATIONS" fonts={fonts} lineColor={lineColor} color={primaryColor} />
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                                         {(template.educationPage === 'split' ? data.education.slice(0, 1) : data.education).map((edu) => {
+                                            const isJustMain = isSectionVisible('educationJustMain', false);
                                             const details: string[] = [];
-                                            if (edu.institution) details.push(`Institution: ${edu.institution}`);
-                                            if (edu.university) details.push(`University: ${edu.university}`);
-                                            if (edu.board) details.push(`Board: ${edu.board}`);
+                                            if (!isJustMain) {
+                                                if (edu.institution) details.push(`Institution: ${edu.institution}`);
+                                                if (edu.university) details.push(`University: ${edu.university}`);
+                                                if (edu.board) details.push(`Board: ${edu.board}`);
+                                            }
                                             if (edu.group) details.push(`Group: ${edu.group}`);
-                                            if (edu.session) details.push(`Session: ${edu.session}`);
+                                            if (!isJustMain) {
+                                                if (edu.session) details.push(`Session: ${edu.session}`);
+                                            }
                                             if (edu.passingYear) details.push(`Passing Year: ${edu.passingYear}`);
                                             if (edu.result) details.push(`Result: ${edu.result}`);
 
@@ -819,12 +1148,17 @@ const CVRenderer: React.FC<CVRendererProps> = ({ data, template, scale = 1, page
                                     <SectionTitle text={template.educationPage === 'split' ? "EDUCATIONAL QUALIFICATIONS (CONT.)" : "EDUCATIONAL QUALIFICATIONS"} fonts={fonts} lineColor={lineColor} color={primaryColor} />
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                                         {(template.educationPage === 'split' ? data.education.slice(1) : data.education).map((edu) => {
+                                            const isJustMain = isSectionVisible('educationJustMain', false);
                                             const details: string[] = [];
-                                            if (edu.institution) details.push(`Institution: ${edu.institution}`);
-                                            if (edu.university) details.push(`University: ${edu.university}`);
-                                            if (edu.board) details.push(`Board: ${edu.board}`);
+                                            if (!isJustMain) {
+                                                if (edu.institution) details.push(`Institution: ${edu.institution}`);
+                                                if (edu.university) details.push(`University: ${edu.university}`);
+                                                if (edu.board) details.push(`Board: ${edu.board}`);
+                                            }
                                             if (edu.group) details.push(`Group: ${edu.group}`);
-                                            if (edu.session) details.push(`Session: ${edu.session}`);
+                                            if (!isJustMain) {
+                                                if (edu.session) details.push(`Session: ${edu.session}`);
+                                            }
                                             if (edu.passingYear) details.push(`Passing Year: ${edu.passingYear}`);
                                             if (edu.result) details.push(`Result: ${edu.result}`);
 

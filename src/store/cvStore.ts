@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { produce } from 'immer';
-import type { CVData, TemplateConfig, HistoryEntry } from '../types';
+import type { CVData, TemplateConfig, HistoryEntry, SavedProfile } from '../types';
 import { defaultCVData, sampleCVData } from '../utils/defaultData';
 import { defaultTemplates } from '../templates/templateConfigs';
 import { v4 as uuid } from 'uuid';
@@ -18,8 +18,16 @@ interface CVStore {
     history: HistoryEntry[];
     historyIndex: number;
 
+    // Saved Profiles
+    savedProfiles: SavedProfile[];
+    saveProfile: (name?: string) => void;
+    loadProfile: (id: string) => void;
+    deleteProfile: (id: string) => void;
+    importProfilesJSON: (json: string) => void;
+    exportProfilesJSON: () => string;
+
     // UI State
-    activeTab: 'form' | 'preview' | 'editor' | 'templates' | 'photo' | 'data' | 'export';
+    activeTab: 'form' | 'preview' | 'editor' | 'templates' | 'photo' | 'data' | 'export' | 'saved' | 'ai-scan';
     activeFormSection: string;
     zoom: number;
     fontSizeModifier: number;
@@ -57,7 +65,7 @@ interface CVStore {
     redo: () => void;
 
     // Actions - UI
-    setActiveTab: (tab: 'form' | 'preview' | 'editor' | 'templates' | 'photo' | 'data' | 'export') => void;
+    setActiveTab: (tab: 'form' | 'preview' | 'editor' | 'templates' | 'photo' | 'data' | 'export' | 'saved' | 'ai-scan') => void;
     setActiveFormSection: (section: string) => void;
     setZoom: (zoom: number) => void;
     setFontSizeModifier: (modifier: number) => void;
@@ -71,19 +79,74 @@ export const useCVStore = create<CVStore>()(
         (set, get) => ({
             // Initial State
             cvData: defaultCVData,
-            currentTemplateId: 'template-1',
+            currentTemplateId: 'base-1-fresher',
             templates: defaultTemplates,
             history: [],
             historyIndex: -1,
+            savedProfiles: [],
             activeTab: 'form',
             activeFormSection: 'personal',
             zoom: 100,
-            fontSizeModifier: 1,
+            fontSizeModifier: 2,
             pagesCount: 2,
             topSpacing: 55,
             bottomSpacing: 0,
             isDirty: false,
             showSampleData: false,
+
+            // Saved Profiles Actions
+            saveProfile: (name?: string) => {
+                const cvName = get().cvData.personal.name?.trim();
+                const profileName = (name && name.trim()) || cvName || 'Untitled CV Profile';
+                const newProfile: SavedProfile = {
+                    id: uuid(),
+                    name: profileName,
+                    updatedAt: new Date().toLocaleString('bn-BD', { dateStyle: 'medium', timeStyle: 'short' }),
+                    currentTemplateId: get().currentTemplateId,
+                    cvData: JSON.parse(JSON.stringify(get().cvData)),
+                };
+                set((state) => ({
+                    savedProfiles: [newProfile, ...state.savedProfiles.filter((p) => p.name.toLowerCase() !== profileName.toLowerCase())],
+                }));
+            },
+
+            loadProfile: (id: string) => {
+                const profile = get().savedProfiles.find((p) => p.id === id);
+                if (profile) {
+                    set({
+                        cvData: JSON.parse(JSON.stringify(profile.cvData)),
+                        currentTemplateId: profile.currentTemplateId || 'base-1-fresher',
+                        isDirty: false,
+                    });
+                    get().pushHistory(`Loaded profile: ${profile.name}`);
+                }
+            },
+
+            deleteProfile: (id: string) => {
+                set((state) => ({
+                    savedProfiles: state.savedProfiles.filter((p) => p.id !== id),
+                }));
+            },
+
+            importProfilesJSON: (json: string) => {
+                try {
+                    const parsed = JSON.parse(json);
+                    if (Array.isArray(parsed)) {
+                        set((state) => {
+                            const existingIds = new Set(state.savedProfiles.map((p) => p.id));
+                            const newItems = parsed.filter((item: any) => item && item.id && item.name && item.cvData && !existingIds.has(item.id));
+                            return { savedProfiles: [...newItems, ...state.savedProfiles] };
+                        });
+                    }
+                } catch (e) {
+                    console.error('Failed to import profiles JSON:', e);
+                    throw new Error('Invalid Profiles Backup JSON file');
+                }
+            },
+
+            exportProfilesJSON: () => {
+                return JSON.stringify(get().savedProfiles, null, 2);
+            },
 
             // CV Data Actions
             setCVData: (data) => {
@@ -317,6 +380,24 @@ export const useCVStore = create<CVStore>()(
                     if (state.cvData && !state.cvData.languages) {
                         state.cvData.languages = [];
                     }
+                    // Ensure trainings array exists
+                    if (state.cvData && !Array.isArray(state.cvData.trainings)) {
+                        state.cvData.trainings = [];
+                    }
+                    // Ensure volunteering array exists
+                    if (state.cvData && !Array.isArray(state.cvData.volunteering)) {
+                        state.cvData.volunteering = [];
+                    }
+                    // Ensure sectionVisibility exists and trainings defaults to ON
+                    if (state.cvData) {
+                        if (!state.cvData.sectionVisibility) {
+                            state.cvData.sectionVisibility = {};
+                        }
+                        // Force trainings to be visible (ON) by default if not explicitly set
+                        if (typeof state.cvData.sectionVisibility.trainings !== 'boolean') {
+                            state.cvData.sectionVisibility.trainings = true;
+                        }
+                    }
                     if (state.templates && Array.isArray(state.templates)) {
                         // Ensure all default templates are present in templates list
                         defaultTemplates.forEach((dt) => {
@@ -402,6 +483,10 @@ function mapImportedJSON(json: Record<string, unknown>): CVData {
         trainings: mapArray(json.trainings as unknown[]).map((t: Record<string, string>) => ({
             id: uuid(), name: t.name || t.title || '', organization: t.organization || '',
             duration: t.duration || '', date: t.date || '',
+        })),
+        volunteering: mapArray(json.volunteering as unknown[]).map((v: Record<string, string>) => ({
+            id: uuid(), role: v.role || v.title || '', organization: v.organization || '',
+            duration: v.duration || '', description: v.description || '',
         })),
         publications: mapArray(json.publications as unknown[]).map((p: Record<string, string>) => ({
             id: uuid(), title: p.title || '', journal: p.journal || '', date: p.date || '', link: p.link || '',

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 120" width="280" height="120">
+  <!-- Classic CV Monogram Logo -->
+  <g transform="translate(10, 10)">
+    <!-- Swirling C -->
+    <path d="M 50 18 C 30 5, 8 20, 8 50 C 8 80, 32 95, 55 82 C 60 78, 62 72, 60 68 C 58 64, 52 64, 48 68 C 38 76, 22 68, 22 50 C 22 32, 36 20, 48 24 Q 52 25, 54 20 Q 55 15, 50 18 Z" fill="#000000"/>
+    
+    <!-- Sharp V interlocked with C -->
+    <path d="M 28 42 L 48 108 L 62 38 L 52 38 L 46 90 L 34 42 Z" fill="#000000"/>
+  </g>
+  
+  <!-- Text: urriculum & itae -->
+  <text x="75" y="52" font-family="'Times New Roman', Georgia, serif" font-style="italic" font-weight="bold" font-size="34" fill="#000000" letter-spacing="0.5">urriculum</text>
+  <text x="82" y="88" font-family="'Times New Roman', Georgia, serif" font-style="italic" font-weight="bold" font-size="30" fill="#000000" letter-spacing="0.5">itae</text>
+</svg>
