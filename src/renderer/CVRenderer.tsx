@@ -971,7 +971,7 @@ const CVRenderer: React.FC<CVRendererProps> = ({ data, template, scale = 1, page
                             {/* Trainings & Certifications */}
                             {isSectionVisible('trainings', true) && data.trainings && data.trainings.length > 0 && (
                                 <div>
-                                    <SectionTitle text="TRAININGS" fonts={fonts} lineColor={sidebarTextColor === '#FFFFFF' ? 'rgba(255,255,255,0.3)' : lineColor} color={sidebarTextColor} />
+                                    <SectionTitle text="TRAININGS & CERTIFICATIONS" fonts={fonts} lineColor={sidebarTextColor === '#FFFFFF' ? 'rgba(255,255,255,0.3)' : lineColor} color={sidebarTextColor} />
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                                         {data.trainings.map((tr: any) => (
                                             <div key={tr.id} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -1306,12 +1306,22 @@ function SectionTitle({ text, fonts, lineColor, color }: { text: string; fonts: 
 
 function ContactItem({ icon, text, color }: { icon: React.ReactNode; text: string; color?: string }) {
     const { fontSizeModifier } = useCVStore();
+    const fontSize = 10 + fontSizeModifier;
+    const lineH = fontSize * 1.4;
     return (
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 10 + fontSizeModifier, color: color || 'inherit' }}>
-            <div style={{ flexShrink: 0, marginTop: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center', color: color || 'inherit' }}>
+        <div style={{ display: 'flex', gap: 10, fontSize, color: color || 'inherit', lineHeight: `${lineH}px` }}>
+            <div style={{
+                flexShrink: 0,
+                width: 14,
+                height: lineH,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: color || 'inherit',
+            }}>
                 {icon}
             </div>
-            <div style={{ wordBreak: 'break-word', lineHeight: 1.4, flex: 1 }}>
+            <div style={{ wordBreak: 'break-word', flex: 1 }}>
                 {text}
             </div>
         </div>
