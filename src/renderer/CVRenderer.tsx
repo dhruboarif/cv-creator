@@ -1307,23 +1307,14 @@ function SectionTitle({ text, fonts, lineColor, color }: { text: string; fonts: 
 function ContactItem({ icon, text, color }: { icon: React.ReactNode; text: string; color?: string }) {
     const { fontSizeModifier } = useCVStore();
     const fontSize = 10 + fontSizeModifier;
-    const lineH = fontSize * 1.4;
     return (
-        <div style={{ display: 'flex', gap: 10, fontSize, color: color || 'inherit', lineHeight: `${lineH}px` }}>
-            <div style={{
-                flexShrink: 0,
-                width: 14,
-                height: lineH,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: color || 'inherit',
-            }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize, lineHeight: 1.5, color: color || 'inherit' }}>
+            <span style={{ flexShrink: 0, marginTop: 3, display: 'inline-block', width: 12, textAlign: 'center', color: color || 'inherit' }}>
                 {icon}
-            </div>
-            <div style={{ wordBreak: 'break-word', flex: 1 }}>
+            </span>
+            <span style={{ wordBreak: 'break-word', flex: 1 }}>
                 {text}
-            </div>
+            </span>
         </div>
     );
 }
