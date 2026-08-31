@@ -1308,13 +1308,13 @@ function ContactItem({ icon, text, color }: { icon: React.ReactNode; text: strin
     const { fontSizeModifier } = useCVStore();
     const fontSize = 10 + fontSizeModifier;
     return (
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize, lineHeight: 1.5, color: color || 'inherit' }}>
-            <span style={{ flexShrink: 0, marginTop: 3, display: 'inline-block', width: 12, textAlign: 'center', color: color || 'inherit' }}>
+        <div style={{ display: 'table', width: '100%', fontSize, lineHeight: 1.5, color: color || 'inherit' }}>
+            <div style={{ display: 'table-cell', width: 22, verticalAlign: 'top', paddingTop: 1, color: color || 'inherit' }}>
                 {icon}
-            </span>
-            <span style={{ wordBreak: 'break-word', flex: 1 }}>
+            </div>
+            <div style={{ display: 'table-cell', verticalAlign: 'top', wordBreak: 'break-word' }}>
                 {text}
-            </span>
+            </div>
         </div>
     );
 }
